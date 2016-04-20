@@ -10,20 +10,22 @@ import UIKit
 
 class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
     
-
+    var memes: [Meme]{
+        return (UIApplication.sharedApplication().delegate as! AppDelegate).memes
+    }
+    
 // MARK: - Outlets
 
     @IBOutlet weak var imagePickerView: UIImageView!
+    
     @IBOutlet weak var cameraButton: UIBarButtonItem!
+    @IBOutlet weak var albumButton: UIBarButtonItem!
     
     @IBOutlet weak var topTextField: UITextField!
     @IBOutlet weak var bottomTextField: UITextField!
     
     @IBOutlet weak var shareButton: UIBarButtonItem!
     @IBOutlet weak var cancelButton: UIBarButtonItem!
-    
-    @IBOutlet weak var navBar: UINavigationBar!
-    @IBOutlet weak var toolBar: UIToolbar!
     
     var y: CGFloat!
     
@@ -33,9 +35,14 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     override func viewWillAppear(animated: Bool) {
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
         shareButton.enabled = (imagePickerView.image != nil)
+        cancelButton.enabled = memes.count != 0 || imagePickerView.image != nil
+        
+        view.backgroundColor = UIColor.darkGrayColor()
         
         // Initial y value of frame's origin is saved to be used for keyboardWillShow function
         y = view.frame.origin.y
+        
+        // tabBarController?.tabBar.hidden = true
         
         subscribeToKeyboardNotifications()
     }
@@ -43,7 +50,6 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
         initializeTextFields()
-        
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -155,13 +161,14 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     func saveMeme() {
         let meme = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imagePickerView.image!, memedImage: generateMemedImage())
+        
+        (UIApplication.sharedApplication().delegate as! AppDelegate).memes.append(meme)
     }
     
-    func generateMemedImage() -> UIImage
-    {
+    func generateMemedImage() -> UIImage {
         // Hide toolbar and navigation bar
-        navBar.hidden = true
-        toolBar.hidden = true
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.setToolbarHidden(true, animated: false)
         
         // Render view to an image
         UIGraphicsBeginImageContext(view.frame.size)
@@ -170,8 +177,8 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         UIGraphicsEndImageContext()
         
         // Show toolbar and navigation bar
-        navBar.hidden = false
-        toolBar.hidden = false
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        navigationController?.setToolbarHidden(false, animated: false)
     
         return memedImage
     }
@@ -188,6 +195,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
             (s: String?, ok: Bool, items: [AnyObject]?, err:NSError?) -> Void in
             if ok {
                 self.saveMeme()
+                self.navigationController?.popToRootViewControllerAnimated(true)
             }
             self.dismissViewControllerAnimated(true, completion: nil)
         }
@@ -202,9 +210,12 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     @IBAction func cancel(sender: AnyObject) {
-        imagePickerView.image = nil
-        initializeTextFields()
+        if imagePickerView.image != nil {
+            imagePickerView.image = nil
+            initializeTextFields() }
+        else {
+            self.dismissViewControllerAnimated(true, completion: nil)
+        }
     }
 
 }
-
