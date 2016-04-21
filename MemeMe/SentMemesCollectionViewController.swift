@@ -87,7 +87,7 @@ class SentMemesCollectionViewController: UICollectionViewController {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! SentMemesCollectionViewCell
     
         // Cell configuration
-        cell.cellImage.contentMode = .ScaleAspectFill
+        cell.cellImage.contentMode = .ScaleAspectFit
         cell.backgroundColor = UIColor.grayColor()
         cell.cellImage.image = memes[indexPath.item].memedImage
     
